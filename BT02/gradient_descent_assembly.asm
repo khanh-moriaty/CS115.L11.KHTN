@@ -114,6 +114,8 @@ gradient_descent:
 		sub.s	$f1, $f1, $f11					# Update w_1 <- w_1 - lr * L'(w_1) #
 												####################################
 		
+		bgt		$t1, 1000000, exit
+		
 		li		$at, 0xfff						# If iters count is  
 		and		$at, $t1, $at					# divisible by 4096 
 		bnez	$at, loop_gradient_descent		# then start printing log...
