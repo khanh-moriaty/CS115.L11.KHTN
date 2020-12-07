@@ -334,7 +334,7 @@ read_csv_line:
 			beq		$t1, $t2, parse_comma_read_csv_line		# If encounters EOL
 			beq		$t1, $t3, parse_comma_read_csv_line		# If encounters a comma
 			beq		$t1, $t4, parse_dot_read_csv_line		# If encounters a dot
-			subi	$t9, $t1, 0x30							# Get decimal value of the character you just read
+			addi	$t9, $t1, -48							# Get decimal value of the character you just read
 			
 			li		$at, 10									################################
 			mul		$t7, $t7, $at							# Append $t1 at the end of $t7 #
