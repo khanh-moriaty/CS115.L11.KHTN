@@ -1,9 +1,3 @@
-# Read and echo file on a character by character basis
-# David A. Reimann
-# April 2008
-
-
-
 	.data
 
 file:
