@@ -12,7 +12,9 @@ class Logistic():
     def __init__(self):
         self.D = []
         self.D.append(InputLayer(n=2))
-        self.D.append(Layer(self.D[-1], n=1024, activation=Sigmoid))
+        self.D.append(Layer(self.D[-1], n=64, activation=ReLU))
+        self.D.append(Layer(self.D[-1], n=64, activation=ReLU))
+        # self.D.append(Layer(self.D[-1], n=4, activation=ReLU))
         self.D.append(Layer(self.D[-1], n=1, activation=Sigmoid))
         
         self.DL = GANDLoss()
@@ -125,7 +127,7 @@ class Logistic():
         plt.scatter(self.x[self.y == 1, 0], self.x[self.y == 1, 1], c='red')
         plt.savefig('generated_data_{}.jpg'.format(i))
         
-    def train(self, batch_size=8, d_loop=1, verbose=False):
+    def train(self, batch_size=256, d_loop=1, verbose=False):
         for _ in range(d_loop):
             # Train D
             Z = np.random.random((batch_size, 2))
@@ -134,12 +136,16 @@ class Logistic():
             Y = self.y[mask]
             Y = Y.reshape(-1, 1)
             Y_hat = self.D[0](X)
-            if verbose: 
-                print(Y)
-                print(Y_hat)
             loss_d = self.DL.compute(Y, Y_hat)
             self.D[0].backward(self.DL)
             self.DO.step()
+            if verbose: 
+                print(Y)
+                print(Y_hat)
+                
+                for D in self.D:
+                    print(D.G_W)
+                    print(D.G_b)
             
         
 import time
@@ -164,9 +170,11 @@ if __name__ == '__main__':
     total_time = 0
     max_iters = 100000
     for iter in range(1, max_iters+1):
-        if iter % 5000 == 0:
+        if iter % 50 == 0:
+            gan.train(verbose=True)
             print('Iter {}/{} || D_loss: {:.5f} || avg_time: {:.5f} ||'.format(iter, max_iters, gan.DL.L, total_time/iter))
             gan.infer(10000, iter)
+            gan.DO.lr = 0.96 ** (iter // 5000)
         t = time.time()
         if iter > 8000 and False:
             gan.train(verbose=True)

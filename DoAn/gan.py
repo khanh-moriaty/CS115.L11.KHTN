@@ -12,16 +12,17 @@ class GAN():
     def __init__(self):
         self.G = []
         self.G.append(InputLayer(n=2))
-        self.G.append(Layer(self.G[-1], n=1, activation=ReLU))
+        self.G.append(Layer(self.G[-1], n=128, activation=ReLU))
         self.G.append(Layer(self.G[-1], n=2, activation=Sigmoid))
         
         self.D = []
         self.D.append(InputLayer(n=2))
-        self.D.append(Layer(self.D[-1], n=1, activation=ReLU))
+        self.D.append(Layer(self.D[-1], n=32, activation=ReLU))
+        self.D.append(Layer(self.D[-1], n=32, activation=ReLU))
         self.D.append(Layer(self.D[-1], n=1, activation=Sigmoid))
         
-        self.GL = GANGNSLoss()
-        self.GO = SGD(self.G, lr=0.2)
+        self.GL = GANGLoss()
+        self.GO = SGD(self.G)
         self.DL = GANDLoss()
         self.DO = SGD(self.D)
         
@@ -31,17 +32,18 @@ class GAN():
     def gen_data(self):
         size = 100
         data = np.hstack((
-            np.random.normal(1/4, 1/30, size=(size, 1)),
-            np.random.normal(1/4, 1/30, size=(size, 1)),
+            np.random.normal(1/4, 1/15, size=(size, 1)),
+            np.random.normal(1/4, 1/15, size=(size, 1)),
         ))
         self.data = np.vstack((data,))
         size = 100
         data = np.hstack((
-            np.random.normal(3/4, 1/30, size=(size, 1)),
-            np.random.normal(3/4, 1/30, size=(size, 1)),
+            np.random.normal(3/4, 1/15, size=(size, 1)),
+            np.random.normal(3/4, 1/15, size=(size, 1)),
         ))
         self.data = np.vstack((self.data, data))
         fig = plt.figure()
+        plt.title('Input Dataset')
         plt.xlim(0, 1)
         plt.ylim(0, 1)
         plt.scatter(self.data[:, 0], self.data[:, 1], c='red')
@@ -54,6 +56,7 @@ class GAN():
         if verbose: print(X)
         
         fig = plt.figure()
+        plt.title('Generation {}'.format(i))
         plt.xlim(0, 1)
         plt.ylim(0, 1)
         Y = self.D[0](self.viz_bound).reshape(-1)
@@ -65,7 +68,7 @@ class GAN():
         plt.scatter(X[:, 0], X[:, 1])
         plt.savefig('generated_data_{}.jpg'.format(i))
         
-    def train(self, batch_size=2, d_loop=1, verbose=False, train_G=True):
+    def train(self, batch_size=256, d_loop=1, verbose=False, train_G=True):
         for _ in range(d_loop):
             # Train D
             Z = np.random.random((batch_size, 2))
@@ -117,14 +120,15 @@ if __name__ == '__main__':
     total_time = 0
     max_iters = 50000
     for iter in range(1, max_iters+1):
-        if iter % 1000 == 0 or (iter < 1000 and iter % 100 == 0):
+        # if iter % 1000 == 0 or (iter < 1000 and iter % 100 == 0):
+        if iter % 200 == 0 or (iter < 1000 and iter % 50 == 0):
             print('Iter {}/{} || G_loss: {:.5f} || D_loss: {:.5f} || avg_time: {:.5f} ||'.format(iter, max_iters, gan.GL.L, gan.DL.L, total_time/iter))
             Z = np.random.random((8, 2))
             X = gan.G[0](Z)
             print('X:\n', X)
             Y_hat = gan.D[0](X)
             print('Y_hat:\n', Y_hat)
-            gan.infer(10000, iter)
+            gan.infer(100000, iter)
         t = time.time()
         if iter == 500:
             for G in gan.G: 
@@ -140,25 +144,24 @@ if __name__ == '__main__':
                 print()
         if iter < 1000:
             gan.train(d_loop=1)
+            gan.DO.lr = 0.08
+            gan.GO.lr = 0.08
         elif iter < 1200:
-            gan.train(d_loop=200)
-            gan.DO.lr = 0.64
-            gan.GO.lr = 0.1
+            gan.train(d_loop=1)
+            gan.DO.lr = 0.16
+            gan.GO.lr = 0.16
         elif iter < 2000:
-            gan.train(d_loop=10)
-            gan.GO.lr = 0.64
+            gan.train(d_loop=1)
+            gan.DO.lr = 0.32
+            gan.GO.lr = 0.32
         elif iter < 3000:
-            gan.train(d_loop=200)
-            gan.GO.lr = 0.25
-        elif iter < 4000:
-            gan.train(d_loop=10)
-            gan.GO.lr = 0.96
-        elif iter < 5000:
-            gan.train(d_loop=200)
-        elif iter > 8000:
-            gan.train(d_loop=1, train_G=False)
+            gan.train(d_loop=1)
+            gan.DO.lr = 0.64
+            gan.GO.lr = 0.64
         else:
             gan.train(d_loop=10)
+            gan.DO.lr = 0.08
+            gan.GO.lr = 0.32
         total_time += time.time() - t
     
     # gan.infer(10, 0, verbose=True)

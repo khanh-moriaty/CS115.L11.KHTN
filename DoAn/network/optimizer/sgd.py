@@ -2,7 +2,7 @@
 
 class SGD():
     
-    def __init__(self, layer_list, lr=0.64):
+    def __init__(self, layer_list, lr=0.01):
         self.layer_list = layer_list
         self.lr = lr
         

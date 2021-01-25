@@ -47,5 +47,6 @@ class Layer():
             
         self.G_W = np.dot(self.prev.A, self.E.T)
         self.G_b = np.sum(self.E, axis=1, keepdims=True)
-        # self.G = np.clip(self.G, -1, 1)
-        # print(A.shape, self.E.shape, self.G.shape, self.W.shape)
+        
+        self.G_W = np.clip(self.G_W, -1, 1)
+        self.G_b = np.clip(self.G_b, -1, 1)
